@@ -1,4 +1,5 @@
 from fenics import *
+from state_equation import *
 
 T = 1.0            # final time
 num_steps = 30     # number of time steps
@@ -27,63 +28,26 @@ g_const = 3
 g = Expression("x[1] <=  tol || x[1] > B - tol ? g_const : 0",
                degree=0, tol=tol, B=B, g_const=g_const)
 
-# y_0 = Expression('exp(-a*pow(x[0], 2) - a*pow(x[1], 2))',
-#                 degree=2, a=5)
 y_0 = Expression("100 + 20*sin(x[0]/L)", degree=2, L=L)
-y_n = interpolate(y_0, V)
+
 
 # Control
 w = 5
 
 
-a = ( rho*c * y * v + delta_t*k * inner(grad(y), grad(v)) )*dx + ( delta_t * g * y * v )*ds
-L = ( rho*c * y_n * v )*dx + ( delta_t * g * w * v )*ds
+Y, T = state(w, V, y_0, g, rho, c, k, delta_t, num_steps)
 
 
 # Create PVD file for saving solution
 stateFile = File('rollout/state_equation.pvd')
 
-Y = []
-T = []
-
-# Time-stepping
 y = Function(V)
-y.assign(y_n)
-t = 0
-stateFile << (y, t)
-y0 = Function(V)
-y0.assign(y)
-Y.append(y0)
-T.append(t)
-for n in range(num_steps):
-
-    # Update current time
-    t += delta_t
-
-    # Save time used for y-step
-    T.append(t)
-
-    # Compute solution
-    solve(a == L, y)
-
-    # Save to file
-    #stateFile << (y, t)
-
-    # Keep solution for use in adjoint equation
-    #Y.append(y.copy())
-    y_k = Function(V)
-    y_k.assign(y)
-    Y.append(y_k)
-
-
-    # Update previous solution
-    y_n.assign(y)
-
 for (y_n, t_n) in zip(Y, T):
 
     y.assign(y_n)
 
     stateFile << (y, t_n)
+
 
 
 """ ----------------- Adjoint equation ----------------- """
