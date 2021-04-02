@@ -2,9 +2,9 @@ from fenics import *
 from state_equation import *
 from adjoint_equation import *
 
-T = 1.0            # final time
-num_steps = 30     # number of time steps
-delta_t = T / num_steps # time step size
+T = 1.0                   # final time
+num_steps = 30            # number of time steps
+delta_t = T / num_steps   # time step size
 
 L = 4
 B = 2
@@ -23,14 +23,15 @@ k = 1
 
 tol = 1e-6
 g_const = 3
+# Heat coefficient, function of time and space
 g = Expression("x[1] <=  tol || x[1] > B - tol ? g_const : 0",
-               degree=0, tol=tol, B=B, g_const=g_const)
+               degree=0, tol=tol, B=B, g_const=g_const, t=0)
 
 y_0 = Expression("100 + 20*sin(x[0]/L)", degree=2, L=L)
 
 
-# Control
-w = 5
+# Control, function of time
+w = Expression("4 + 0.1*t", degree=1, t=0)
 
 
 Y, T = state(w, V, y_0, g, rho, c, k, delta_t, num_steps)

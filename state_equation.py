@@ -33,6 +33,10 @@ def state(w, V, y_0, g, rho, c, k, delta_t, num_steps):
         # Save time used for y-step
         T.append(t)
 
+        # Update control and heat coefficient for new time
+        w.t = t
+        g.t = t
+
         # Compute solution
         solve(a == L, y)
 

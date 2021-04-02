@@ -34,6 +34,9 @@ def adjoint(V, Y, T, y_d, g, rho, c, k, delta_t, num_steps):
 
         y.assign(Y[-n])
 
+        # Update heat coefficient for new time
+        g.t = t
+
         # Compute solution
         solve(a == L, p)
 
