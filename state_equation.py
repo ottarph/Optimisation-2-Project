@@ -1,6 +1,6 @@
 from fenics import *
 
-def state(w, V, y_0, g, rho, c, k, delta_t, num_steps):
+def state(w, V, y_0, g, rho, c, k, delta_t, num_steps, ds):
 
     """ ----------------- State equation ----------------- """
 
@@ -10,9 +10,12 @@ def state(w, V, y_0, g, rho, c, k, delta_t, num_steps):
 
     y_n = interpolate(y_0, V)
 
-    a = ( rho*c * y * v + delta_t*k * inner(grad(y), grad(v)) )*dx + ( delta_t * g * y * v )*ds
-    L = ( rho*c * y_n * v )*dx + ( delta_t * g * w * v )*ds
+    a = ( rho*c * y * v + delta_t*k * inner(grad(y), grad(v)) )*dx + \
+        ( delta_t * g * y * v )*ds(0)
 
+    L = ( rho*c * y_n * v )*dx + \
+        ( delta_t * g * w * v )*ds(0) + \
+        0 * v * ds(1)
 
     Y = []
     T = []

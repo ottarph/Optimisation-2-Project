@@ -1,7 +1,7 @@
 from fenics import *
 
 
-def adjoint(V, Y, T, y_d, g, rho, c, k, delta_t, num_steps):
+def adjoint(V, Y, T, y_d, g, rho, c, k, delta_t, num_steps, ds):
 
     """ ----------------- Adjoint equation ----------------- """
 
@@ -15,7 +15,9 @@ def adjoint(V, Y, T, y_d, g, rho, c, k, delta_t, num_steps):
     p_n = interpolate(p_0, V)
 
 
-    a = ( rho*c * p * h + delta_t*k * inner(grad(p), grad(h)) )*dx + ( delta_t * g * p * h )*ds
+    a = ( rho*c * p * h + delta_t*k * inner(grad(p), grad(h)) )*dx + \
+        ( delta_t * g * p * h )*ds(0)
+        
     L = ( rho*c * p_n * h + delta_t * (y - y_d) * h )*dx
 
 
