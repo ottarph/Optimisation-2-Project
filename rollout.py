@@ -1,9 +1,10 @@
 from fenics import *
 from state_equation import *
 from adjoint_equation import *
+from cost_functional import *
 
-T = 1.0                   # final time
-num_steps = 30            # number of time steps
+T = 3.0                   # final time
+num_steps = 50            # number of time steps
 delta_t = T / num_steps   # time step size
 
 L = 4
@@ -36,27 +37,41 @@ bx1.mark(boundary_markers, 1)
 
 ds = Measure('ds', domain=mesh, subdomain_data=boundary_markers)
 
+
+
 rho = 1
-c = 1
+c = 100
 k = 1
 
-""" ----------------- State equation ----------------- """
-
-
 tol = 1e-6
-g_const = 3
+g_const = 10
 # Heat coefficient, function of time and space
 g = Expression("x[1] <=  tol || x[1] > B - tol ? g_const : 0",
                degree=0, tol=tol, B=B, g_const=g_const, t=0)
 
-y_0 = Expression("100 + 20*sin(x[1]/B)", degree=2, B=B)
+g = Expression("g_const", degree=0, g_const=g_const, t=0)
+
+y_0 = Expression("40 + 30*sin(pi*x[1]/B) + 10*cos(2*pi*x[0]/L)", degree=2, B=B, L=L)
 
 
 # Control, function of time
-w = Expression("4 + 0.1*t", degree=1, t=0)
+W = []
+w = Expression("t < 1.5 ? 0 : 100", degree=1, t=0)
+for k in range(num_steps):
+    w.t = k * delta_t
+    w_k = interpolate(w, V)
+    print(assemble(w_k * ds))
+    W.append(w_k)
 
 
-Y, T = state(w, V, y_0, g, rho, c, k, delta_t, num_steps, ds)
+y_d_const = 10
+y_d_func = Expression("y_d_const + 10*t", degree=0, y_d_const=y_d_const, t=0)
+
+""" ----------------- State equation ----------------- """
+
+
+
+Y, T = state(W, V, y_0, g, rho, c, k, delta_t, num_steps, ds)
 
 
 # Create PVD file for saving solution
@@ -69,6 +84,8 @@ for (y_n, t_n) in zip(Y, T):
 
     stateFile << (y, t_n)
 
+print(cost_functional(Y, W, T, y_d_func, delta_t, V))
+
 
 
 """ ----------------- Adjoint equation ----------------- """
@@ -78,7 +95,7 @@ y_d_const = 10
 y_d_func = Expression("y_d_const", degree=0, y_d_const=y_d_const)
 y_d = interpolate(y_d_func, V)
 
-P = adjoint(V, Y, T, y_d, g, rho, c, k, delta_t, num_steps, ds)
+P = adjoint(V, Y, T, y_d_func, g, rho, c, k, delta_t, num_steps, ds)
 
 # Create PVD file for saving solution
 adjFile = File('rollout/adjoint_equation.pvd')

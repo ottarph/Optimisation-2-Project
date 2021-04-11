@@ -1,6 +1,6 @@
 from fenics import *
 
-def state(w, V, y_0, g, rho, c, k, delta_t, num_steps, ds):
+def state(W, V, y_0, g, rho, c, k, delta_t, num_steps, ds):
 
     """ ----------------- State equation ----------------- """
 
@@ -9,13 +9,14 @@ def state(w, V, y_0, g, rho, c, k, delta_t, num_steps, ds):
     v = TestFunction(V)
 
     y_n = interpolate(y_0, V)
+    w = Function(V)
+    w.assign(W[0])
 
     a = ( rho*c * y * v + delta_t*k * inner(grad(y), grad(v)) )*dx + \
         ( delta_t * g * y * v )*ds(0)
 
     L = ( rho*c * y_n * v )*dx + \
-        ( delta_t * g * w * v )*ds(0) + \
-        0 * v * ds(1)
+        ( delta_t * g * w * v )*ds(0)
 
     Y = []
     T = []
@@ -37,8 +38,12 @@ def state(w, V, y_0, g, rho, c, k, delta_t, num_steps, ds):
         T.append(t)
 
         # Update control and heat coefficient for new time
-        w.t = t
+        #w.t = t
+        w.assign(W[n])
         g.t = t
+
+        #print(dir(w))
+      
 
         # Compute solution
         solve(a == L, y)
