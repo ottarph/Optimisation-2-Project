@@ -4,7 +4,6 @@ from adjoint_equation import *
 
 
 def cost_functional(Y, W, T, y_d_func, delta_t, V, gamma):
-    """ For now only the part concerning Y """
     
     cost = 0
     for y, w, t in zip(Y, W, T):

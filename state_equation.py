@@ -42,9 +42,6 @@ def state(W, V, y_0, g, rho, c, k, delta_t, num_steps, ds):
         w.assign(W[n])
         g.t = t
 
-        #print(dir(w))
-      
-
         # Compute solution
         solve(a == L, y)
 
