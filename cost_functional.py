@@ -1,6 +1,4 @@
 from fenics import *
-from state_equation import *
-from adjoint_equation import *
 
 
 def cost_functional(Y, W, T, y_d_func, delta_t, V, gamma):
