@@ -7,7 +7,7 @@ import numpy as np
 
 
 def gradient_descent(W_0, V, y_0, y_d_func, w_a, w_b, gamma, g, rho, c, k, delta_t, num_steps, ds,
-         stop, max_iter, rel_stop=0.95, c1 = 0.5, tau=0.5):
+         stop, max_iter, rel_stop=0.95, c1 = 0.5, tau=0.5, max_inner_iter=10):
 
     costs = []
 
@@ -19,7 +19,6 @@ def gradient_descent(W_0, V, y_0, y_d_func, w_a, w_b, gamma, g, rho, c, k, delta
 
     i = 0
     while curr_cost > stop and i < max_iter and curr_cost / last_cost < rel_stop:
-    #while i < 10:
 
         costs.append(curr_cost)
 
@@ -48,7 +47,7 @@ def gradient_descent(W_0, V, y_0, y_d_func, w_a, w_b, gamma, g, rho, c, k, delta
         alpha = 1
         accept = False
         j = 0
-        while accept is False and j < 10:
+        while accept is False and j < max_inner_iter:
             j += 1
 
             W_new = []
@@ -85,7 +84,6 @@ def gradient_descent(W_0, V, y_0, y_d_func, w_a, w_b, gamma, g, rho, c, k, delta
 
         if new_cost_ad < curr_cost:
                 
-
             last_cost = curr_cost
             curr_cost = new_cost_ad
             Y = Y_new_ad
@@ -153,11 +151,16 @@ def main():
 
     stop = 0 # Don't stop because of low cost functional.
     max_iter = 10
+    max_inner_iter = 10 # How many iterations to find a suitable step length
 
     W, costs = gradient_descent(W_0, V, y_0, y_d_func, w_a, w_b, gamma, g, rho, c, k, delta_t, num_steps, ds,
-         stop, max_iter, rel_stop=0.95, c1 = 0.5, tau=0.5)
+         stop, max_iter, rel_stop=0.95, c1 = 0.5, tau=0.5, max_inner_iter=max_inner_iter)
 
-    print(costs)
+    fname = "temp.txt"
+    save = True
+    if save:
+        np.savetxt(fname, costs)
+
 
     return
 
