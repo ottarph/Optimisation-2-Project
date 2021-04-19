@@ -11,7 +11,7 @@ def main():
         costs.append(float(line.rstrip()))
 
 
-    plt.plot(range(len(costs)), np.log(costs), 'k-o')
+    plt.semilogy(range(len(costs)), costs, 'k-o')
 
     plt.show()
     return
