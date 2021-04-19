@@ -30,17 +30,17 @@ def gradient_descent(W_0, V, y_0, y_d_func, w_a, w_b, gamma, g, rho, c, k, delta
         P = adjoint_eq(V, Y, T, y_d_func, g, rho, c, k, delta_t, num_steps, ds)
 
         grad = []
-        for k, (t, p, w) in enumerate(zip(T, P, W)):
+        for n, (t, p, w) in enumerate(zip(T, P, W)):
             g.t = t
             gg = interpolate(g, V)
-            gk = Function(V)
-            gk.vector()[:] = gg.vector()[:] * p.vector()[:] + gamma * w.vector()[:]
-            grad.append(gk)
+            gn = Function(V)
+            gn.vector()[:] = gg.vector()[:] * p.vector()[:] + gamma * w.vector()[:]
+            grad.append(gn)
 
         grad_square_norm = 0
 
-        for gk in grad:
-            grad_square_norm += delta_t * norm(gk)**2
+        for gn in grad:
+            grad_square_norm += delta_t * norm(gn)**2
 
 
         """ Backtracking line search with Armijo condition """
@@ -144,10 +144,10 @@ def main():
     # Control over boundary, assumed function of time
     W_0 = []
     w = Expression("t < 1.5 ? 4 : 90", degree=1, t=0)
-    for k in range(num_steps):
-        w.t = k * delta_t
-        w_k = interpolate(w, V)
-        W_0.append(w_k)
+    for i in range(num_steps):
+        w.t = i * delta_t
+        w_i = interpolate(w, V)
+        W_0.append(w_i)
 
     stop = 0 # Don't stop because of low cost functional.
     max_iter = 10

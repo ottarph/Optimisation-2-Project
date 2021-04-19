@@ -17,6 +17,20 @@ delta_t = T / num_steps   # time step size
 L = 4
 B = 2
 
+""" Properties of system """
+# Physical constants in equation
+rho = 1
+c = 100
+k = 1
+
+g_const = 10
+# Heat coefficient, function of time
+g = Expression("g_const", degree=0, g_const=g_const, t=0)
+
+# Initial condition
+y_0 = Expression("40 + 30*sin(pi*x[1]/B) + 10*cos(2*pi*x[0]/L)", degree=2, B=B, L=L)
+
+
 # Create mesh and define function space
 mesh = RectangleMesh(Point(0, 0), Point(L, B), int(L*10), int(B*10))
 V = FunctionSpace(mesh, "Lagrange", 1)
@@ -31,23 +45,11 @@ ds = create_boundary_measure(mesh, L, B)
 # Penalty constant for control
 gamma = 1
 
-# Target temperature function over time
+# Target temperature at end time
 y_d_const = 30
 y_d_func = Expression("y_d_const + 5*t", degree=0, y_d_const=y_d_const, t=T)
 y_d = project(y_d_func, V)
 
-
-# Physical constants in equation
-rho = 1
-c = 100
-k = 1
-
-g_const = 10
-# Heat coefficient, function of time
-g = Expression("g_const", degree=0, g_const=g_const, t=0)
-
-# Initial condition
-y_0 = Expression("40 + 30*sin(pi*x[1]/B) + 10*cos(2*pi*x[0]/L)", degree=2, B=B, L=L)
 
 
 """ Define admissible set """
@@ -59,10 +61,10 @@ w_b = 90 # Think of as 90 degrees Celsius water
 # Control over boundary, assumed function of time
 W = []
 w = Expression("t < 1.5 ? 4 : 90", degree=1, t=0)
-for k in range(num_steps):
-    w.t = k * delta_t
-    w_k = interpolate(w, V)
-    W.append(w_k)
+for i in range(num_steps):
+    w.t = i * delta_t
+    w_i = interpolate(w, V)
+    W.append(w_i)
 
 
 
@@ -109,25 +111,25 @@ if SAVE:
 """ ----------------- Compute gradient ----------------- """
 
 grad = []
-for k, (t, p, w) in enumerate(zip(T, P, W)):
+for i, (t, p, w) in enumerate(zip(T, P, W)):
     g.t = t
     gg = interpolate(g, V)
-    gk = Function(V)
-    gk.vector()[:] = gg.vector()[:] * p.vector()[:] + gamma * w.vector()[:]
-    grad.append(gk)
+    gi = Function(V)
+    gi.vector()[:] = gg.vector()[:] * p.vector()[:] + gamma * w.vector()[:]
+    grad.append(gi)
 
 if SAVE:
     # Create PVD file for saving gradient
     gradFile = File('rollout/gradient.pvd')
     
     # Save adjoint equation solution to file
-    gk = Function(V)
-    for g_k, t_k in zip(grad, T):
+    gi = Function(V)
+    for g_i, t_i in zip(grad, T):
         
         # Save to file
-        gk.assign(g_k)
+        gi.assign(g_i)
         
-        gradFile << (gk, t_k)
+        gradFile << (gi, t_i)
 
 
 """ Compute solution for incremented control """
@@ -153,13 +155,13 @@ if SAVE:
     controlFile = File('rollout/new_control.pvd')
     
     # Save control to file
-    wk = Function(V)
-    for w_k, t_k in zip(W_new, T):
+    wi = Function(V)
+    for w_i, t_i in zip(W_new, T):
         
         # Save to file
-        wk.assign(w_k)
+        wi.assign(w_i)
         
-        controlFile << (wk, t_k)
+        controlFile << (wi, t_i)
 
 if SAVE:
     """ Saving state with new control to file """
@@ -168,13 +170,13 @@ if SAVE:
     newStateFile = File('rollout/new_state.pvd')
     
     # Save adjoint equation solution to file
-    yk = Function(V)
-    for y_k, t_k in zip(Y_new, T):
+    yi = Function(V)
+    for y_i, t_i in zip(Y_new, T):
         
         # Save to file
-        yk.assign(y_k)
+        yi.assign(y_k)
         
-        newStateFile << (yk, t_k)
+        newStateFile << (yi, t_i)
 
 
 """ Project new control onto the admissible set """
@@ -200,13 +202,13 @@ if SAVE:
     adControlFile = File('rollout/new_ad_control.pvd')
     
     # Save control to file
-    wk = Function(V)
-    for w_k, t_k in zip(W_new_ad, T):
+    wi = Function(V)
+    for w_i, t_i in zip(W_new_ad, T):
         
         # Save to file
-        wk.assign(w_k)
+        wi.assign(w_i)
         
-        adControlFile << (wk, t_k)
+        adControlFile << (wi, t_i)
 
 if SAVE:
     """ Saving state with new admissible control to file """
@@ -215,10 +217,10 @@ if SAVE:
     newAdStateFile = File('rollout/new_ad_state.pvd')
     
     # Save adjoint equation solution to file
-    yk = Function(V)
-    for y_k, t_k in zip(Y_new_ad, T):
+    yi = Function(V)
+    for y_i, t_i in zip(Y_new_ad, T):
         
         # Save to file
-        yk.assign(y_k)
+        yi.assign(y_i)
         
-        newAdStateFile << (yk, t_k)
+        newAdStateFile << (yi, t_i)

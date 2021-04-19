@@ -1,5 +1,5 @@
 from fenics import *
-
+from state_equation import *
 
 def create_boundary_measure(mesh, L, B):
     """ Define new boundary-measure to split integral over Gamma_0, Gamma_1 """
@@ -26,3 +26,17 @@ def create_boundary_measure(mesh, L, B):
 
     return ds
 
+
+def create_test_problem(w_func, V, y_0, g, rho, c, k, delta_t, num_steps, ds):
+
+    W = []
+    t = 0
+    for i in range(num_steps):
+        w_func.t = t
+        wi = interpolate(w_func, V)
+        W.append(wi)
+        t += delta_t
+
+    Y, T = state(W, V, y_0, g, rho, c, k, delta_t, num_steps, ds)
+
+    return Y[-1]
