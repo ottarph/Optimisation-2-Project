@@ -33,7 +33,8 @@ gamma = 1
 
 # Target temperature function over time
 y_d_const = 30
-y_d_func = Expression("y_d_const + 5*t", degree=0, y_d_const=y_d_const, t=0)
+y_d_func = Expression("y_d_const + 5*t", degree=0, y_d_const=y_d_const, t=T)
+y_d = project(y_d_func, V)
 
 
 # Physical constants in equation
@@ -89,7 +90,7 @@ print(cost_functional(Y, W, T, y_d_func, delta_t, V, gamma))
 """ ----------------- Adjoint equation ----------------- """
 
 
-P = adjoint_eq(V, Y, T, y_d_func, g, rho, c, k, delta_t, num_steps, ds)
+P = adjoint_eq(V, Y, T, y_d, g, rho, c, k, delta_t, num_steps, ds)
 
 if SAVE:
     # Create PVD file for saving adjoint

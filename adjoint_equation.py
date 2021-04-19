@@ -1,7 +1,7 @@
 from fenics import *
 
 
-def adjoint_eq(V, Y, T, y_d_func, g, rho, c, k, delta_t, num_steps, ds):
+def adjoint_eq(V, Y, T, y_d, g, rho, c, k, delta_t, num_steps, ds):
 
     """ ----------------- Adjoint equation ----------------- """
 
@@ -10,9 +10,6 @@ def adjoint_eq(V, Y, T, y_d_func, g, rho, c, k, delta_t, num_steps, ds):
 
 
     y = Function(V)
-
-    y_d_func.t = T[-1]
-    y_d = interpolate(y_d_func, V)
 
     y.assign(Y[-1])
 
