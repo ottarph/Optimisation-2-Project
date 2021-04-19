@@ -174,7 +174,7 @@ if SAVE:
     for y_i, t_i in zip(Y_new, T):
         
         # Save to file
-        yi.assign(y_k)
+        yi.assign(y_i)
         
         newStateFile << (yi, t_i)
 
