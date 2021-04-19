@@ -21,14 +21,14 @@ B = 2
 # Physical constants in equation
 rho = 1
 c = 100
-k = 1
+k = 50
 
-g_const = 10
+g_const = 15
 # Heat coefficient, function of time
-g = Expression("g_const", degree=0, g_const=g_const, t=0)
+g = Expression("g_const * exp(-pow(t - T/2, 2))", degree=2, g_const=g_const, T=T, t=0)
 
 # Initial condition
-y_0 = Expression("40 + 30*sin(pi*x[1]/B) + 10*cos(2*pi*x[0]/L)", degree=2, B=B, L=L)
+y_0 = Expression("200 + 50*exp(-pow(x[0]-L/2, 2) - pow(x[1]-B/2, 2))", degree=2, L=L, B=B)
 
 
 # Create mesh and define function space
@@ -43,13 +43,16 @@ ds = create_boundary_measure(mesh, L, B)
 """ Defining the cost functional """
 
 # Penalty constant for control
-gamma = 1
+gamma = 0.05
 
 # Target temperature at end time
 y_d_const = 30
 y_d_func = Expression("y_d_const + 5*t", degree=0, y_d_const=y_d_const, t=T)
 y_d = project(y_d_func, V)
 
+w_target_func = Expression("20 + 5 * t", degree=1, t=0)
+
+y_d = create_test_problem(w_target_func, V, y_0, g, rho, c, k, delta_t, num_steps, ds)
 
 
 """ Define admissible set """
@@ -60,7 +63,7 @@ w_b = 90 # Think of as 90 degrees Celsius water
 
 # Control over boundary, assumed function of time
 W = []
-w = Expression("t < 1.5 ? 4 : 90", degree=1, t=0)
+w = Expression("18 * t", degree=1, t=0)
 for i in range(num_steps):
     w.t = i * delta_t
     w_i = interpolate(w, V)
@@ -85,7 +88,7 @@ if SAVE:
         stateFile << (y, t_n)
 
 
-print(cost_functional(Y, W, T, y_d_func, delta_t, V, gamma))
+print(cost_functional(Y, W, T, y_d, delta_t, V, gamma))
 
 
 
@@ -146,7 +149,7 @@ Y_new, _ = state(W_new, V, y_0, g, rho, c, k, delta_t, num_steps, ds)
 
 """ Compute cost functional for new control """
 
-print(cost_functional(Y_new, W_new, T, y_d_func, delta_t, V, gamma))
+print(cost_functional(Y_new, W_new, T, y_d, delta_t, V, gamma))
 
 if SAVE:
     """ Saving new control to file """
@@ -193,7 +196,7 @@ Y_new_ad, _ = state(W_new_ad, V, y_0, g, rho, c, k, delta_t, num_steps, ds)
 
 """ Compute cost functional for new admissible control """
 
-print(cost_functional(Y_new_ad, W_new_ad, T, y_d_func, delta_t, V, gamma))
+print(cost_functional(Y_new_ad, W_new_ad, T, y_d, delta_t, V, gamma))
 
 if SAVE:
     """ Saving new admissible control to file """
