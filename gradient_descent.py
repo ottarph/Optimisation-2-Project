@@ -7,7 +7,7 @@ import numpy as np
 
 
 def gradient_descent(W_0, V, y_0, y_d, w_a, w_b, gamma, g, rho, c, k, delta_t, num_steps, ds,
-         stop, max_iter, rel_stop=0.95, c1 = 0.5, tau=0.5, max_inner_iter=10):
+         stop, max_iter, rel_stop=0.95, c1=0.5, alpha_0=1, tau=0.5, max_inner_iter=10):
 
     costs = []
 
@@ -44,7 +44,7 @@ def gradient_descent(W_0, V, y_0, y_d, w_a, w_b, gamma, g, rho, c, k, delta_t, n
 
 
         """ Backtracking line search with Armijo condition """
-        alpha = 1
+        alpha = alpha_0
         accept = False
         j = 0
         while accept is False and j < max_inner_iter:
@@ -130,7 +130,7 @@ def main():
     """ Defining the cost functional """
 
     # Penalty constant for control
-    gamma = 0.5
+    gamma = 0.001
 
     # Target temperature at end time
     y_d_const = 30
@@ -157,17 +157,77 @@ def main():
         W_0.append(w_i)
 
     stop = 0 # Don't stop because of low cost functional.
-    max_iter = 10
+    max_iter = 20
     max_inner_iter = 20 # How many iterations to find a suitable step length
 
     W, costs = gradient_descent(W_0, V, y_0, y_d, w_a, w_b, gamma, g, rho, c, k, delta_t, num_steps, ds,
-         stop, max_iter, rel_stop=0.95, c1 = 0.5, tau=0.5, max_inner_iter=max_inner_iter)
+         stop, max_iter, rel_stop=0.99, c1=0.5, alpha_0=10, tau=0.5, max_inner_iter=max_inner_iter)
 
     fname = "temp.txt"
-    save = True
-    if save:
+    save_costs = True
+    if save_costs:
         np.savetxt(fname, costs)
 
+
+    save_start_state = True
+    if save_start_state:
+        Y, T = state(W_0, V, y_0, g, rho, c, k, delta_t, num_steps, ds)
+
+        oldStateFile = File('gradient_descent/old_state.pvd')
+
+        yi = Function(V)
+        for y_i, t_i in zip(Y, T):
+            
+            # Save to file
+            yi.assign(y_i)
+            
+            oldStateFile << (yi, t_i)
+
+        oldStateDiffFile = File('gradient_descent/old_state_diff.pvd')
+
+        for y_i, t_i in zip(Y, T):
+
+            # Save to file
+            yi.assign(y_i - y_d)
+            
+            oldStateDiffFile << (yi, t_i)
+
+    save_control = True
+    if save_control:
+
+        newControlFile = File('gradient_descent/new_control.pvd')
+
+        wi = Function(V)
+        for (w_i, t_i) in zip(W, T):
+
+            wi.assign(w_i)
+
+            newControlFile << (wi, t_i)
+
+
+    save_end_state = True
+    if save_end_state:
+
+        Y, T = state(W, V, y_0, g, rho, c, k, delta_t, num_steps, ds)
+
+        newStateFile = File('gradient_descent/new_state.pvd')
+
+        yi = Function(V)
+        for y_i, t_i in zip(Y, T):
+            
+            # Save to file
+            yi.assign(y_i)
+            
+            newStateFile << (yi, t_i)
+
+        newStateDiffFile = File('gradient_descent/new_state_diff.pvd')
+
+        for y_i, t_i in zip(Y, T):
+
+            # Save to file
+            yi.assign(y_i - y_d)
+            
+            newStateDiffFile << (yi, t_i)
 
     return
 
