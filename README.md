@@ -6,3 +6,5 @@ We developed a projected gradient descent method to minimize an integral cost fu
 Code running the optimization is contained in `main.py`, importing code from all the auxilliary files and saving results to disk.
 The project uses the `FEniCS` computing platform throughout for computing the finite element method variational problems in each time step.
 The `main.py`file is currently set up for solving the test problem used in the report.
+
+The file `SLIDES.pdf` presents the methods and test problems in our report in short form.
